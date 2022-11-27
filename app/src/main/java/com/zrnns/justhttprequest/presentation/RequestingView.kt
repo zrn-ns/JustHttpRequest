@@ -26,10 +26,12 @@ import com.android.volley.Request.Method
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.zrnns.justhttprequest.R
+import com.zrnns.justhttprequest.storage.StoreManager
 
 
 class RequestingViewModel(
     val urlText: String,
+    val method: StoreManager.HttpMethod,
     application: Application
 ): AndroidViewModel(application), DefaultLifecycleObserver {
     var completionHandler: ((statusCode: Int, isSucceeded: Boolean) -> Unit)? = null
@@ -49,7 +51,7 @@ class RequestingViewModel(
         val queue = Volley.newRequestQueue(getApplication())
 
         // Request a string response from the provided URL.
-        val request = StringRequest(Method.GET, urlText,
+        val request = StringRequest(method.toVolleyRequestMethod(), urlText,
             { response ->
                 Log.i(null, response.toString())
                 completionHandler?.let { it(200, true) }
@@ -69,7 +71,7 @@ class RequestingViewModel(
 }
 
 @Composable
-fun RequestingView(viewModel: RequestingViewModel = RequestingViewModel(urlText = "https://zrn-ns.com/", application = Application())) {
+fun RequestingView(viewModel: RequestingViewModel = RequestingViewModel(urlText = "https://zrn-ns.com/", method = StoreManager.HttpMethod.GET, application = Application())) {
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.addObserver(viewModel)

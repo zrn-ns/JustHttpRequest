@@ -5,7 +5,6 @@ import android.app.RemoteInput
 import android.content.Intent
 import android.os.Bundle
 import android.view.inputmethod.EditorInfo
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,10 +32,36 @@ class SettingsViewModel(
 ): AndroidViewModel(application), DefaultLifecycleObserver {
     private val storeManager = StoreManager(application)
     var url = MutableLiveData<String>(storeManager.getURL())
+    var method = MutableLiveData<StoreManager.HttpMethod>(storeManager.getMethod())
 
     fun updatedURL(url: String) {
         storeManager.saveURL(url)
         this.url.value = url
+    }
+    fun changeMethod() {
+        val nextMethod = fun(): StoreManager.HttpMethod {
+            when (method.value) {
+                StoreManager.HttpMethod.GET -> {
+                    return StoreManager.HttpMethod.POST
+                }
+                StoreManager.HttpMethod.POST -> {
+                    return StoreManager.HttpMethod.PUT
+                }
+                StoreManager.HttpMethod.PUT -> {
+                    return StoreManager.HttpMethod.DELETE
+                }
+                StoreManager.HttpMethod.DELETE -> {
+                    return StoreManager.HttpMethod.PATCH
+                }
+                StoreManager.HttpMethod.PATCH -> {
+                    return StoreManager.HttpMethod.GET
+                }
+                else -> { return StoreManager.HttpMethod.GET }
+            }
+        }.invoke()
+
+        storeManager.saveMethod(nextMethod)
+        method.value = nextMethod
     }
 }
 
@@ -44,6 +69,7 @@ class SettingsViewModel(
 fun SettingsView(viewModel: SettingsViewModel) {
     val context = LocalContext.current
     val url = viewModel.url.observeAsState()
+    val method = viewModel.method.observeAsState()
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             it.data?.let { data ->
@@ -65,10 +91,10 @@ fun SettingsView(viewModel: SettingsViewModel) {
         item {
             TitleCard(
                 onClick = {
-                    Toast.makeText(context, "Currently, GET is the only supported method.", Toast.LENGTH_SHORT).show()
+                    viewModel.changeMethod()
                 },
                 title = { Text(stringResource(R.string.method)) },
-                content = { Text("GET") }
+                content = { Text(method.value.toString()) }
             )
         }
         item {

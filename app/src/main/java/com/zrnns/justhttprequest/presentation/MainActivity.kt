@@ -56,7 +56,7 @@ fun WearApp() {
                 SettingsView(SettingsViewModel(application))
             }
             composable("requesting") {
-                val viewModel = RequestingViewModel(application = application, urlText = StoreManager(application).getURL())
+                val viewModel = RequestingViewModel(application = application, urlText = StoreManager(application).getURL(), method = StoreManager(application).getMethod())
                 viewModel.completionHandler = { statusCode, isSucceeded ->
                     navController.navigate("requestResult/$statusCode/$isSucceeded")
                 }
