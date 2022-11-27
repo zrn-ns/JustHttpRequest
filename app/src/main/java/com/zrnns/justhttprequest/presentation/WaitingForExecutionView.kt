@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -51,7 +52,7 @@ class WaitingForExecutionViewModel(
     }
 
     var completionHandler: (() -> Unit)? = null
-    var cancelHandler: (() -> Unit)? = null
+    var tappedSettingHandler: (() -> Unit)? = null
     var progress = MutableLiveData<Float>(0F)
         private set
     var myCountDownTimer: MyCountDownTimer? = null
@@ -61,8 +62,13 @@ class WaitingForExecutionViewModel(
         startCountDownTimer()
     }
 
-    fun onSelectingCancel() {
-        cancelHandler?.let { it() }
+    override fun onPause(owner: LifecycleOwner) {
+        super.onPause(owner)
+        stopAndResetTimer()
+    }
+
+    fun onSelectingSetting() {
+        tappedSettingHandler?.let { it() }
     }
 
     private val scope = CoroutineScope(Job() + Dispatchers.Main)
@@ -79,6 +85,11 @@ class WaitingForExecutionViewModel(
             }
         )
         myCountDownTimer?.start()
+    }
+
+    private fun stopAndResetTimer() {
+        myCountDownTimer?.cancel()
+        myCountDownTimer = null
     }
 }
 
@@ -123,10 +134,10 @@ fun WaitingForExecutionView(viewModel: WaitingForExecutionViewModel) {
         )
         Spacer(modifier = Modifier.height(height = 20.dp))
         Button(
-            onClick = { viewModel.onSelectingCancel() },
+            onClick = { viewModel.onSelectingSetting() },
         ) {
             Icon(
-                Icons.Default.Close,
+                Icons.Default.Settings,
                 contentDescription = "Cancel"
             )
         }

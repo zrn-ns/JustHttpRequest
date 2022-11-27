@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.zrnns.justhttprequest.presentation.theme.JustHttpRequestTheme
+import com.zrnns.justhttprequest.storage.StoreManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WearApp() {
+    val application = LocalContext.current.applicationContext as Application
     val activity = (LocalContext.current as? Activity)
 
     JustHttpRequestTheme {
@@ -45,13 +47,16 @@ fun WearApp() {
                 viewModel.completionHandler = {
                     navController.navigate("requesting")
                 }
-                viewModel.cancelHandler = {
-                    activity?.finish()
+                viewModel.tappedSettingHandler = {
+                    navController.navigate("settings")
                 }
                 WaitingForExecutionView(viewModel = viewModel)
             }
+            composable("settings") {
+                SettingsView(SettingsViewModel(application))
+            }
             composable("requesting") {
-                val viewModel = RequestingViewModel(urlText = "https://google.com", LocalContext.current.applicationContext as Application)
+                val viewModel = RequestingViewModel(application = application, urlText = StoreManager(application).getURL())
                 viewModel.completionHandler = { statusCode, isSucceeded ->
                     navController.navigate("requestResult/$statusCode/$isSucceeded")
                 }
@@ -69,7 +74,7 @@ fun WearApp() {
                 val viewModel = RequestResultViewModel(
                     statusCode = it.arguments?.getInt("statusCode") ?: -1,
                     isSucceeded = it.arguments?.getBoolean("isSucceeded") ?: false,
-                    application = LocalContext.current.applicationContext as Application
+                    application = application
                 )
                 viewModel.completionHandler = {
                     activity?.finish()

@@ -64,7 +64,7 @@ class RequestingViewModel(
 }
 
 @Composable
-fun RequestingView(viewModel: RequestingViewModel = RequestingViewModel(urlText = "https://zrn-ns.com/", Application())) {
+fun RequestingView(viewModel: RequestingViewModel = RequestingViewModel(urlText = "https://zrn-ns.com/", application = Application())) {
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.addObserver(viewModel)
