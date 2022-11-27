@@ -41,7 +41,7 @@ fun WearApp() {
         val navController = rememberNavController()
         NavHost(navController = navController, startDestination = "requesting") {
             composable("requesting") {
-                val viewModel = RequestingViewModel(urlText = "https://zrn-ns.com", LocalContext.current.applicationContext as Application)
+                val viewModel = RequestingViewModel(urlText = "https://google.com", LocalContext.current.applicationContext as Application)
                 viewModel.completionHandler = { statusCode, isSucceeded ->
                     navController.navigate("requestResult/$statusCode/$isSucceeded")
                 }
@@ -55,7 +55,8 @@ fun WearApp() {
             ) {
                 val viewModel = RequestResultViewModel(
                     statusCode = it.arguments?.getInt("statusCode") ?: -1,
-                    isSucceeded = it.arguments?.getBoolean("isSucceeded") ?: false
+                    isSucceeded = it.arguments?.getBoolean("isSucceeded") ?: false,
+                    application = LocalContext.current.applicationContext as Application
                 )
                 viewModel.completionHandler = {
                     activity?.finish()
