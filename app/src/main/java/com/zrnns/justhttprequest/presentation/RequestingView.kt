@@ -56,7 +56,12 @@ class RequestingViewModel(
             },
             { error ->
                 error.localizedMessage?.let { Log.e(null, it) }
-                completionHandler?.let { it(error.networkResponse.statusCode, false) }
+                error.networkResponse?.also {
+                    completionHandler?.let { it(error.networkResponse.statusCode, false) }
+                } ?: run {
+                    // 不正なURLが渡された場合などはこちらに入ってくる
+                    completionHandler?.let { it(-1, false) }
+                }
             })
 
         queue.add(request)
