@@ -2,4 +2,7 @@
     <string name="app_name">JustHttpRequest</string>
     <string name="ready">Ready…</string>
     <string name="requesting">requesting...</string>
+    <string name="succeeded">Succeeded!</string>
+    <string name="error">Error!</string>
+    <string name="resultTextWithStatusCode">Status code is %1$s</string>
 </resources>
