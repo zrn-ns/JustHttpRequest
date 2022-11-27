@@ -39,7 +39,14 @@ fun WearApp() {
 
     JustHttpRequestTheme {
         val navController = rememberNavController()
-        NavHost(navController = navController, startDestination = "requesting") {
+        NavHost(navController = navController, startDestination = "waitingForExecution") {
+            composable("waitingForExecution") {
+                val viewModel = WaitingForExecutionViewModel()
+                viewModel.completionHandler = {
+                    navController.navigate("requesting")
+                }
+                WaitingForExecutionView(viewModel = viewModel)
+            }
             composable("requesting") {
                 val viewModel = RequestingViewModel(urlText = "https://google.com", LocalContext.current.applicationContext as Application)
                 viewModel.completionHandler = { statusCode, isSucceeded ->
