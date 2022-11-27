@@ -38,11 +38,6 @@ class RequestingViewModel(
     val urlText: String
 ): ViewModel() {
 
-    companion object {
-        const val CONNECTION_TIMEOUT_MILLISECONDS = 3000
-        const val READ_TIMEOUT_MILLISECONDS = 3000
-    }
-
     var needsToExit = MutableLiveData<Boolean>(false)
 
     fun tappedCancel(activity: Activity?) {
