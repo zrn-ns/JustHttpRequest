@@ -48,11 +48,13 @@ class WaitingForExecutionViewModel(
 ): ViewModel(), DefaultLifecycleObserver {
     companion object {
         const val TOTAL_COUNT_MILLIS: Float = 3_000F
-        const val INTERVAL_MILLIS: Float = 100F
+        const val INTERVAL_MILLIS: Float = 1_000F
     }
 
     var completionHandler: (() -> Unit)? = null
     var tappedSettingHandler: (() -> Unit)? = null
+
+    var elapsedTimeMillis: Float = 0F
     var progress = MutableLiveData<Float>(0F)
         private set
     var myCountDownTimer: MyCountDownTimer? = null
@@ -74,14 +76,20 @@ class WaitingForExecutionViewModel(
     private val scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private fun startCountDownTimer() {
+        myCountDownTimer?.cancel()
         myCountDownTimer = MyCountDownTimer(
-            millisInFuture = TOTAL_COUNT_MILLIS.toLong(),
+            millisInFuture = INTERVAL_MILLIS.toLong(),
             countDownInterval = INTERVAL_MILLIS.toLong(),
-            onTickHandler = {
-                progress.value = (TOTAL_COUNT_MILLIS - it) / TOTAL_COUNT_MILLIS
-            },
+            onTickHandler = {},
             onFinishHandler = {
-                completionHandler?.let { it() }
+                elapsedTimeMillis += INTERVAL_MILLIS.toLong()
+                progress.value = elapsedTimeMillis / TOTAL_COUNT_MILLIS
+
+                if (elapsedTimeMillis >= TOTAL_COUNT_MILLIS) {
+                    completionHandler?.let { it() }
+                } else {
+                    startCountDownTimer()
+                }
             }
         )
         myCountDownTimer?.start()
