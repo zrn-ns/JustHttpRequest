@@ -6,26 +6,21 @@
 
 package com.zrnns.justhttprequest.presentation
 
+import android.app.Activity
+import android.app.Application
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.Icon
-import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
-import com.zrnns.justhttprequest.R
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.zrnns.justhttprequest.presentation.theme.JustHttpRequestTheme
 
 class MainActivity : ComponentActivity() {
@@ -40,8 +35,35 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WearApp() {
+    val activity = (LocalContext.current as? Activity)
+
     JustHttpRequestTheme {
-        RequestingView()
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "requesting") {
+            composable("requesting") {
+                val viewModel = RequestingViewModel(urlText = "https://zrn-ns.com", LocalContext.current.applicationContext as Application)
+                viewModel.completionHandler = { statusCode, isSucceeded ->
+                    navController.navigate("requestResult/$statusCode/$isSucceeded")
+                }
+                RequestingView(viewModel = viewModel)
+            }
+            composable("requestResult/{statusCode}/{isSucceeded}",
+                arguments = listOf(
+                    navArgument("statusCode") { type = NavType.IntType },
+                    navArgument("isSucceeded") { type = NavType.BoolType },
+                )
+            ) {
+                val viewModel = RequestResultViewModel(
+                    statusCode = it.arguments?.getInt("statusCode") ?: -1,
+                    isSucceeded = it.arguments?.getBoolean("isSucceeded") ?: false
+                )
+                viewModel.completionHandler = {
+                    activity?.finish()
+                }
+
+                RequestResultView(viewModel)
+            }
+        }
     }
 }
 

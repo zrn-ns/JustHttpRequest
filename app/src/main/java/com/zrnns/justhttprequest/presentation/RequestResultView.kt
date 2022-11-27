@@ -2,53 +2,60 @@ package com.zrnns.justhttprequest.presentation
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.zrnns.justhttprequest.R
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 class RequestResultViewModel(
     val statusCode: Int,
     val isSucceeded: Boolean,
-): LifecycleObserver {
+): DefaultLifecycleObserver {
     companion object {
-        const val EXIT_AFTER_MSEC: Long = 3_000
+        const val EXIT_AFTER_MILLIS: Long = 3_000
     }
 
-    var needsToExit = MutableLiveData<Boolean>(false)
-        private set
+    var completionHandler: (() -> Unit)? = null
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    suspend fun onResume() {
-        startDismissTimer()
+    override fun onResume(owner: LifecycleOwner) {
+        super.onResume(owner)
+
+        scope.launch {
+            startDismissTimer()
+        }
     }
+
+    private val scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private suspend fun startDismissTimer() {
         withContext(Dispatchers.IO) {
-            delay(EXIT_AFTER_MSEC)
-            needsToExit.value = true
+            delay(EXIT_AFTER_MILLIS)
+            completionHandler?.let { it() }
         }
     }
 }
 
 @Composable
 fun RequestResultView(viewModel: RequestResultViewModel = RequestResultViewModel(statusCode = 200, isSucceeded = true)) {
-    val needsToExit = viewModel.needsToExit.observeAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.addObserver(viewModel)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(viewModel)
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
