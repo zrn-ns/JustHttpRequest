@@ -45,12 +45,18 @@ fun WearApp() {
                 viewModel.completionHandler = {
                     navController.navigate("requesting")
                 }
+                viewModel.cancelHandler = {
+                    activity?.finish()
+                }
                 WaitingForExecutionView(viewModel = viewModel)
             }
             composable("requesting") {
                 val viewModel = RequestingViewModel(urlText = "https://google.com", LocalContext.current.applicationContext as Application)
                 viewModel.completionHandler = { statusCode, isSucceeded ->
                     navController.navigate("requestResult/$statusCode/$isSucceeded")
+                }
+                viewModel.cancelHandler = {
+                    activity?.finish()
                 }
                 RequestingView(viewModel = viewModel)
             }
